@@ -1,7 +1,15 @@
 use tauri::{CustomMenuItem, SystemTray, SystemTrayMenu, SystemTrayEvent, Manager, WindowBuilder, WindowUrl};
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc};
+use std::sync::atomic::{AtomicBool, Ordering};
 use serde::{Serialize, Deserialize};
 use tauri::api::dialog::FileDialogBuilder;
+use scrap::{Capturer, Display};
+use std::time::{Duration, Instant};
+use std::thread;
+use std::io::ErrorKind::WouldBlock;
+use image::{ImageBuffer, Rgb};
+use std::fs;
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone)]
 struct Settings {
@@ -39,84 +47,125 @@ async fn open_folder_dialog(app_handle: tauri::AppHandle) -> Result<String, Stri
     }
 }
 
+fn capture_screen(duration: Duration, frame_rate: u32, output_path: &str, stop_signal: Arc<AtomicBool>) -> Result<(), String> {
+    let display = Display::primary().expect("Couldn't find primary display.");
+    let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
+    let (width, height) = (capturer.width(), capturer.height());
+
+    let start_time = Instant::now();
+    let frame_duration = Duration::from_secs_f64(1.0 / frame_rate as f64);
+    let mut last_capture = Instant::now();
+    let mut frame_count = 0;
+
+    fs::create_dir_all(output_path).map_err(|e| format!("Failed to create output directory: {}", e))?;
+
+    while start_time.elapsed() < duration && !stop_signal.load(Ordering::Relaxed) {
+        if last_capture.elapsed() >= frame_duration {
+            match capturer.frame() {
+                Ok(buffer) => {
+                    let image: ImageBuffer<Rgb<u8>, Vec<u8>> = ImageBuffer::from_raw(
+                        width as u32,
+                        height as u32,
+                        buffer.to_vec()
+                    ).ok_or("Failed to create ImageBuffer")?;
+                    let file_name = format!("frame_{:05}.png", frame_count);
+                    let file_path = PathBuf::from(output_path).join(file_name);
+                    image.save(file_path).map_err(|e| format!("Failed to save image: {}", e))?;
+                    frame_count += 1;
+                    last_capture = Instant::now();
+                },
+                Err(error) => {
+                    if error.kind() == WouldBlock {
+                        thread::sleep(Duration::from_millis(1));
+                        continue;
+                    } else {
+                        return Err(format!("Error: {}", error));
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
 fn main() {
     let initial_settings = Settings {
         recording_location: std::env::temp_dir().to_string_lossy().into_owned(),
         frame_rate: 30,
     };
 
+    let recording = Arc::new(AtomicBool::new(false));
+    let stop_signal = Arc::new(AtomicBool::new(false));
+
     let system_tray = SystemTray::new().with_menu(
         SystemTrayMenu::new()
             .add_item(CustomMenuItem::new("settings".to_string(), "Settings"))
+            .add_item(CustomMenuItem::new("start_recording".to_string(), "Start Recording"))
+            .add_item(CustomMenuItem::new("stop_recording".to_string(), "Stop Recording"))
             .add_item(CustomMenuItem::new("quit".to_string(), "Quit"))
     );
 
     tauri::Builder::default()
         .manage(State(Mutex::new(initial_settings)))
         .system_tray(system_tray)
-        .on_system_tray_event(|app, event| match event {
-            SystemTrayEvent::MenuItemClick { id, .. } => {
-                match id.as_str() {
-                    "quit" => {
-                        std::process::exit(0);
-                    }
-                    "settings" => {
-                        let window = app.get_window("settings");
-                        if let Some(window) = window {
-                            window.show().unwrap();
-                            window.set_focus().unwrap();
-                        } else {
-                            let _settings_window = WindowBuilder::new(
-                                app,
-                                "settings",
-                                WindowUrl::default()
-                            )
-                            .title("Screen Recorder Settings")
-                            .inner_size(400.0, 300.0)
-                            .resizable(false)
-                            .build()
-                            .expect("Failed to create settings window");
+        .on_system_tray_event(move |app, event| {
+            let recording_handle = recording.clone();
+            let stop_signal_handle = stop_signal.clone();
+            match event {
+                SystemTrayEvent::MenuItemClick { id, .. } => {
+                    match id.as_str() {
+                        "quit" => {
+                            std::process::exit(0);
                         }
+                        "settings" => {
+                            let window = app.get_window("settings");
+                            if let Some(window) = window {
+                                window.show().unwrap();
+                                window.set_focus().unwrap();
+                            } else {
+                                let _settings_window = WindowBuilder::new(
+                                    app,
+                                    "settings",
+                                    WindowUrl::default()
+                                )
+                                .title("Screen Recorder Settings")
+                                .inner_size(400.0, 300.0)
+                                .resizable(false)
+                                .build()
+                                .expect("Failed to create settings window");
+                            }
+                        }
+                        "start_recording" => {
+                            if !recording_handle.load(Ordering::Relaxed) {
+                                recording_handle.store(true, Ordering::Relaxed);
+                                stop_signal_handle.store(false, Ordering::Relaxed);
+                                let state = app.state::<State>();
+                                let settings = state.0.lock().unwrap().clone();
+                                let stop_signal = stop_signal_handle.clone();
+                                thread::spawn(move || {
+                                    let _ = capture_screen(
+                                        Duration::from_secs(3600), // 1 hour max
+                                        settings.frame_rate,
+                                        &settings.recording_location,
+                                        stop_signal,
+                                    );
+                                    recording_handle.store(false, Ordering::Relaxed);
+                                });
+                            }
+                        }
+                        "stop_recording" => {
+                            if recording_handle.load(Ordering::Relaxed) {
+                                stop_signal_handle.store(true, Ordering::Relaxed);
+                            }
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
+                _ => {}
             }
-            _ => {}
         })
         .invoke_handler(tauri::generate_handler![update_settings, get_settings, open_folder_dialog])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-fn capture_screen() {
-    let display = Display::primary().expect("Couldn't find primary display.");
-    let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
-    let (w, h) = (capturer.width(), capturer.height());
-
-    loop {
-        match capturer.frame() {
-            Ok(frame) => {
-                // Process and save frame
-            },
-            Err(error) => {
-                if error.kind() == WouldBlock {
-                    // Wait for the next frame
-                    thread::sleep(Duration::from_millis(1));
-                    continue;
-                } else {
-                    panic!("Error: {}", error);
-                }
-            }
-        }
-    }
-}
-
-fn resize_frame(frame: ImageBuffer<Rgb<u8>, Vec<u8>>, new_width: u32, new_height: u32) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
-    image::imageops::resize(&frame, new_width, new_height, image::imageops::FilterType::Lanczos3)
-}
-
-use ffmpeg_next as ffmpeg;
-
-fn save_video_chunk(frames: Vec<ImageBuffer<Rgb<u8>, Vec<u8>>>, output_path: &str) {
-    // Initialize ffmpeg context and write frames
 }

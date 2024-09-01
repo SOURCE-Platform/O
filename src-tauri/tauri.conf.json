@@ -1,7 +1,8 @@
 {
   "build": {
-    "distDir": "../dist",
-    "devPath": "http://localhost:3000"
+    "devPath": "../src",
+    "distDir": "../src",
+    "withGlobalTauri": true
   },
   "tauri": {
     "allowlist": {
