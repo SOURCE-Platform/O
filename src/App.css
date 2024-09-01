@@ -1,0 +1,37 @@
+.settings-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.setting-section {
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.current-location {
+  word-break: break-all;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 5px 10px;
+}
+
+.frame-rate-options {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.frame-rate-option {
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
