@@ -1,4 +1,7 @@
-use tauri::{CustomMenuItem, SystemTray, SystemTrayMenu, SystemTrayEvent, Manager, WindowBuilder, WindowUrl};
+use tauri::{
+    CustomMenuItem, SystemTray, SystemTrayMenu, SystemTrayEvent,
+    WindowBuilder, WindowUrl, Manager,
+};
 use std::sync::{Mutex, Arc};
 use std::sync::atomic::{AtomicBool, Ordering};
 use serde::{Serialize, Deserialize};
@@ -39,9 +42,14 @@ fn get_settings(state: tauri::State<State>) -> Result<Settings, String> {
 }
 
 #[tauri::command]
-async fn open_folder_dialog(app_handle: tauri::AppHandle) -> Result<String, String> {
-    let folder = FileDialogBuilder::new().pick_folder();
-    match folder {
+async fn open_folder_dialog() -> Result<String, String> {
+    let (tx, rx) = std::sync::mpsc::channel();
+    
+    FileDialogBuilder::new().pick_folder(move |path| {
+        tx.send(path).unwrap();
+    });
+
+    match rx.recv().unwrap() {
         Some(path) => Ok(path.to_string_lossy().into_owned()),
         None => Err("No folder selected".into()),
     }
@@ -109,7 +117,7 @@ fn main() {
     tauri::Builder::default()
         .manage(State(Mutex::new(initial_settings)))
         .system_tray(system_tray)
-        .on_system_tray_event(move |app, event| {
+        .on_system_tray_event(move |app_handle, event| {
             let recording_handle = recording.clone();
             let stop_signal_handle = stop_signal.clone();
             match event {
@@ -119,13 +127,13 @@ fn main() {
                             std::process::exit(0);
                         }
                         "settings" => {
-                            let window = app.get_window("settings");
+                            let window = app_handle.get_window("settings");
                             if let Some(window) = window {
                                 window.show().unwrap();
                                 window.set_focus().unwrap();
                             } else {
                                 let _settings_window = WindowBuilder::new(
-                                    app,
+                                    app_handle,
                                     "settings",
                                     WindowUrl::default()
                                 )
@@ -140,7 +148,7 @@ fn main() {
                             if !recording_handle.load(Ordering::Relaxed) {
                                 recording_handle.store(true, Ordering::Relaxed);
                                 stop_signal_handle.store(false, Ordering::Relaxed);
-                                let state = app.state::<State>();
+                                let state = app_handle.state::<State>();
                                 let settings = state.0.lock().unwrap().clone();
                                 let stop_signal = stop_signal_handle.clone();
                                 thread::spawn(move || {
