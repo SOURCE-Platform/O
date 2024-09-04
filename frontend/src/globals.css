@@ -2,30 +2,4 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 13%;
-    --foreground: 0 0% 100%;
-    /* ... other custom properties ... */
-  }
-
-  .dark {
-    --background: 0 0% 13%;
-    --foreground: 0 0% 100%;
-    /* ... other dark mode custom properties ... */
-  }
-
-  html, body, #root {
-    font-family: 'Open Sans', sans-serif !important;
-    font-weight: 400 !important; /* or any other weight you prefer as default */
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
+/* Any absolutely necessary global styles that can't be achieved with Tailwind */

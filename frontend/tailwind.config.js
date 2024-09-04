@@ -12,8 +12,8 @@ module.exports = {
       },
       colors: {
         border: "hsl(var(--border))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: "#212121", // or your desired dark background color
+        foreground: "#ffffff",
         // ... other color definitions ...
       },
       fontWeight: {
