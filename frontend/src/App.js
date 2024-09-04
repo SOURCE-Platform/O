@@ -1,12 +1,28 @@
-import React from 'react';
-import { Button } from "./components/ui/button"
+import React, { useState } from 'react';
+import HeaderTabs from './components/ui/HeaderTabs';
+
+// Placeholder components for tab contents
+const DevicesContent = () => <div>Devices & Data Content</div>;
+const AccountContent = () => <div>Account Content</div>;
+const AboutContent = () => <div>About Content</div>;
+const FeedbackContent = () => <div>Feedback Content</div>;
+const HelpContent = () => <div>Help Content</div>;
 
 function App() {
+  const [activeTab, setActiveTab] = useState('devices');
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Hello, World!</h1>
-      <p className="mb-4">Welcome to your Tauri + React application!</p>
-      <Button onClick={() => alert('Button clicked!')}>Click Me</Button>
+    <div className="bg-background text-foreground min-h-screen flex flex-col">
+      <HeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <main className="flex-grow p-6">
+        <div className="p-4 rounded-lg">
+          {activeTab === 'devices' && <DevicesContent />}
+          {activeTab === 'account' && <AccountContent />}
+          {activeTab === 'about' && <AboutContent />}
+          {activeTab === 'feedback' && <FeedbackContent />}
+          {activeTab === 'help' && <HelpContent />}
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,0 +1,45 @@
+.header-tabs {
+  padding: 1rem;
+  border-bottom: 1px solid #4E4E4E;
+}
+
+.tabs-list {
+  width: 100%;
+  justify-content: flex-start;
+  background-color: transparent;
+}
+
+.tab-trigger {
+  font-family: 'Open Sans', sans-serif !important;
+  font-weight: 400 !important; /* or whatever weight you prefer */
+  font-size: 1.125rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  color: #9ca3af;
+  position: relative;
+}
+
+.tab-trigger[data-state="active"] {
+  color: #ffffff;
+  font-weight: 400 !important; /* if you want active tabs to be bolder */
+}
+
+.tab-trigger[data-state="active"]::after {
+  background-color: #ffffff;
+}
+
+.tab-trigger span {
+  padding-left: 0rem;
+  padding-right: 0rem;
+  position: relative;
+}
+
+.tab-trigger[data-state="active"] span::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #ffffff;
+}
