@@ -3,7 +3,7 @@ import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { iconPaths } from './ui/iconPaths';
 import SettingsCard from './SettingsCard';
 
-const DevicesAndData = () => {
+const DevicesAndData = ({ onDeviceSelect }) => {
   const [activeDevice, setActiveDevice] = useState('Surface 10');
   const [showSettings, setShowSettings] = useState(null);
 
@@ -17,10 +17,15 @@ const DevicesAndData = () => {
     setShowSettings(prevDevice => prevDevice === deviceName ? null : deviceName);
   };
 
+  const handleDeviceChange = (device) => {
+    setActiveDevice(device);
+    onDeviceSelect(device);
+  };
+
   return (
     <div>
       <div className="mt-8">
-        <Tabs value={activeDevice} onValueChange={setActiveDevice} className="mb-6 ml-1">
+        <Tabs value={activeDevice} onValueChange={handleDeviceChange} className="mb-6 ml-1">
           <TabsList className="flex justify-start bg-transparent">
             {devices.map((device) => (
               <TabsTrigger

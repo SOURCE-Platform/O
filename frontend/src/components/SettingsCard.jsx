@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Switch } from "./shadcn/switch.tsx";
 
+// Remove this line as we're not using it directly
+// import { invoke } from '@tauri-apps/api/tauri';
+
 const defaultSettingsConfig = {
   Screen: { 
     enabled: false,
@@ -68,36 +71,82 @@ const SettingItem = ({ title, description, enabled, onToggle }) => (
 );
 
 const SettingsCard = ({ deviceName }) => {
-  const [settings, setSettings] = useState({});
+  const [settings, setSettings] = useState(defaultSettingsConfig);
+  const [error, setError] = useState(null);
+
+  const fetchSettings = async () => {
+    console.log('Fetching settings for device:', deviceName);
+    try {
+      let fetchedSettings;
+      if (window.__TAURI__) {
+        const { invoke } = await import('@tauri-apps/api/tauri');
+        fetchedSettings = await invoke('get_device_settings', { deviceName });
+      } else {
+        // Use localStorage for browser environment
+        const storedSettings = localStorage.getItem(`settings_${deviceName}`);
+        fetchedSettings = storedSettings ? JSON.parse(storedSettings) : defaultSettingsConfig;
+      }
+      console.log('Fetched settings:', fetchedSettings);
+      if (typeof fetchedSettings === 'object' && fetchedSettings !== null) {
+        setSettings(fetchedSettings);
+      } else {
+        throw new Error('Invalid settings data received');
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      setError(error.toString());
+      setSettings(defaultSettingsConfig);
+    }
+  };
 
   useEffect(() => {
-    // Here you would typically fetch the settings for the specific device
-    // For now, we'll just use the default settings
-    setSettings(defaultSettingsConfig);
+    fetchSettings();
   }, [deviceName]);
 
-  const handleToggle = (settingTitle) => {
-    setSettings(prev => ({
-      ...prev,
-      [settingTitle]: { ...prev[settingTitle], enabled: !prev[settingTitle].enabled }
-    }));
-    // Here you would typically save the updated settings for the specific device
+  const handleToggle = async (settingTitle) => {
+    const updatedSettings = {
+      ...settings,
+      [settingTitle]: { ...settings[settingTitle], enabled: !settings[settingTitle].enabled }
+    };
+    setSettings(updatedSettings);
+
+    console.log('Saving updated settings:', updatedSettings);
+    
+    try {
+      if (window.__TAURI__) {
+        const { invoke } = await import('@tauri-apps/api/tauri');
+        await invoke('save_device_settings', { deviceName, settings: updatedSettings });
+      } else {
+        // Save to localStorage for browser environment
+        localStorage.setItem(`settings_${deviceName}`, JSON.stringify(updatedSettings));
+      }
+      console.log('Settings saved successfully');
+      setError(null);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setError(`Failed to save settings: ${error}`);
+    }
   };
 
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Settings for {deviceName}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Object.entries(settings).map(([title, settingData]) => (
-          <SettingItem
-            key={title}
-            title={title}
-            description={settingData.description}
-            enabled={settingData.enabled}
-            onToggle={handleToggle}
-          />
-        ))}
-      </div>
+      {error && <p className="text-red-500">Error: {error}</p>}
+      {Object.keys(settings).length === 0 ? (
+        <p>Loading settings...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Object.entries(settings).map(([title, settingData]) => (
+            <SettingItem
+              key={title}
+              title={title}
+              description={settingData.description}
+              enabled={settingData.enabled}
+              onToggle={handleToggle}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
