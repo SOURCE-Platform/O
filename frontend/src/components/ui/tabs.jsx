@@ -3,19 +3,22 @@ import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "../../lib/utils"
 
+// The root component for the tabs, manages the overall tab state
 const Tabs = TabsPrimitive.Root
 
+// The container for the tab triggers (buttons)
 const TabsList = React.forwardRef(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md p-1 text-muted-foreground",
+      "inline-flex h-10 items-center justify-center rounded-md text-muted-foreground",
       className
     )}
     {...props} />
 ))
 TabsList.displayName = TabsPrimitive.List.displayName
 
+// The individual tab button component
 const TabsTrigger = React.forwardRef(({ className, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
@@ -27,6 +30,7 @@ const TabsTrigger = React.forwardRef(({ className, ...props }, ref) => (
 ))
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
+// The content container for each tab panel
 const TabsContent = React.forwardRef(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}

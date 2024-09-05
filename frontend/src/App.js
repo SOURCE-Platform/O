@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
+import Sidebar from './components/Sidebar';
 import HeaderTabs from './components/ui/HeaderTabs';
-
-// Placeholder components for tab contents
-const DevicesContent = () => <div>Devices & Data Content</div>;
-const AccountContent = () => <div>Account Content</div>;
-const AboutContent = () => <div>About Content</div>;
-const FeedbackContent = () => <div>Feedback Content</div>;
-const HelpContent = () => <div>Help Content</div>;
+import DevicesAndData from './components/DevicesAndData';
 
 function App() {
   const [activeTab, setActiveTab] = useState('devices');
+  const [showSettings, setShowSettings] = useState(false);
+
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
+  };
 
   return (
-    <div className="bg-background text-foreground min-h-screen flex flex-col">
-      <HeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      <main className="flex-grow p-6">
-        <div className="p-4 rounded-lg">
-          {activeTab === 'devices' && <DevicesContent />}
-          {activeTab === 'account' && <AccountContent />}
-          {activeTab === 'about' && <AboutContent />}
-          {activeTab === 'feedback' && <FeedbackContent />}
-          {activeTab === 'help' && <HelpContent />}
+    <div className="flex bg-background text-foreground min-h-screen">
+      <Sidebar onSettingsClick={toggleSettings} />
+      <main className="flex-grow flex flex-col">
+        <HeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="flex-grow ml-8">
+          {activeTab === 'devices' ? (
+            <DevicesAndData />
+          ) : (
+            <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} content</div>
+          )}
         </div>
       </main>
     </div>
