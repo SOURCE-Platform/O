@@ -4,37 +4,6 @@ import { Switch } from "./shadcn/switch.tsx";
 // Remove this line as we're not using it directly
 // import { invoke } from '@tauri-apps/api/tauri';
 
-const defaultSettingsConfig = {
-  Screen: { 
-    enabled: false,
-    description: "Records screen activity and learns what you do based on your screen activity."
-  },
-  'Session info': { 
-    enabled: false,
-    description: "Captures what apps and sites you have open in any session. Learns how your sessions evolve over time."
-  },
-  'Background processes': { 
-    enabled: false,
-    description: "Captures what background processes are running to determine what functionality you rely on while you compute."
-  },
-  Keyboard: { 
-    enabled: false,
-    description: "Learns your typing patterns and keyboard shortcuts to better learn how you communicate and what functionality you rely on."
-  },
-  Mouse: { 
-    enabled: false,
-    description: "Captures your mouse movements and clicks to learn how you interact with your computer."
-  },
-  Camera: { 
-    enabled: false,
-    description: "Sees how you react while using your devices to determine what events trigger what emotions and behaviors."
-  },
-  Mic: { 
-    enabled: false,
-    description: "Listens to you while you're on calls and comments you might have while using your device inorder to better understand you. "
-  },
-};
-
 const SettingItem = ({ title, description, enabled, onToggle }) => (
   <div 
     className={`p-4 rounded-lg shadow-md flex transition-all duration-300 cursor-pointer
@@ -71,7 +40,7 @@ const SettingItem = ({ title, description, enabled, onToggle }) => (
 );
 
 const SettingsCard = ({ deviceName }) => {
-  const [settings, setSettings] = useState(defaultSettingsConfig);
+  const [settings, setSettings] = useState({});
   const [error, setError] = useState(null);
 
   const fetchSettings = async () => {
@@ -84,7 +53,7 @@ const SettingsCard = ({ deviceName }) => {
       } else {
         // Use localStorage for browser environment
         const storedSettings = localStorage.getItem(`settings_${deviceName}`);
-        fetchedSettings = storedSettings ? JSON.parse(storedSettings) : defaultSettingsConfig;
+        fetchedSettings = storedSettings ? JSON.parse(storedSettings) : {};
       }
       console.log('Fetched settings:', fetchedSettings);
       if (typeof fetchedSettings === 'object' && fetchedSettings !== null) {
@@ -95,7 +64,6 @@ const SettingsCard = ({ deviceName }) => {
     } catch (error) {
       console.error('Error fetching settings:', error);
       setError(error.toString());
-      setSettings(defaultSettingsConfig);
     }
   };
 
@@ -106,7 +74,10 @@ const SettingsCard = ({ deviceName }) => {
   const handleToggle = async (settingTitle) => {
     const updatedSettings = {
       ...settings,
-      [settingTitle]: { ...settings[settingTitle], enabled: !settings[settingTitle].enabled }
+      [settingTitle]: { 
+        ...settings[settingTitle], 
+        enabled: !settings[settingTitle].enabled 
+      }
     };
     setSettings(updatedSettings);
 

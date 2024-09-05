@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
-import { iconPaths } from './ui/iconPaths';
 import SettingsCard from './SettingsCard';
+import { Icon } from './ui/icons/Icon.tsx';  // Keeping the .tsx extension
 
 const DevicesAndData = ({ onDeviceSelect }) => {
   const [activeDevice, setActiveDevice] = useState('Surface 10');
@@ -24,8 +24,8 @@ const DevicesAndData = ({ onDeviceSelect }) => {
 
   return (
     <div>
-      <div className="mt-8">
-        <Tabs value={activeDevice} onValueChange={handleDeviceChange} className="mb-6 ml-1">
+      <div className="mt-8  mx-8">
+        <Tabs value={activeDevice} onValueChange={handleDeviceChange} className="mb-6">
           <TabsList className="flex justify-start bg-transparent">
             {devices.map((device) => (
               <TabsTrigger
@@ -53,9 +53,7 @@ const DevicesAndData = ({ onDeviceSelect }) => {
             className="p-2 hover:bg-gray-700 rounded-md"
             onClick={() => toggleSettings(activeDevice)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-              <path d={iconPaths.settings} />
-            </svg>  
+            <Icon name="settings" size={24} className="text-white-100" />   
           </button>
         </div>
 

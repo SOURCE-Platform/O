@@ -24,6 +24,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
+    "svg-parser": "^2.0.4",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -31,7 +32,8 @@
     "start": "react-app-rewired --max_old_space_size=4096 start",
     "build": "react-app-rewired --max_old_space_size=4096 build",
     "test": "react-app-rewired --max_old_space_size=4096 test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "generate-icons": "node scripts/generateIconPaths.js"
   },
   "eslintConfig": {
     "extends": [
