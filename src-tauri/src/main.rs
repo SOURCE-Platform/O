@@ -171,11 +171,6 @@ fn main() {
     tauri::Builder::default()
         .manage(State(Mutex::new(initial_settings)))
         .invoke_handler(tauri::generate_handler![get_device_settings, save_device_settings])
-        .setup(|app| {
-            let window = app.get_window("main").unwrap();
-            window.set_decorations(false).unwrap();
-            Ok(())
-        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

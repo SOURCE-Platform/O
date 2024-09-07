@@ -6,7 +6,7 @@ import SettingsPage from './components/SettingsPage';
 
 function App() {
   console.log('App component rendering');
-  const [activeTab, setActiveTab] = useState('devices');
+  const [activeTab, setActiveTab] = useState('Devices');
   const [showSettings, setShowSettings] = useState(false);
   const [currentDevice, setCurrentDevice] = useState('MyDevice');
 
@@ -21,7 +21,7 @@ function App() {
         <main className="flex-grow flex flex-col">
           <HeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
           <div className="flex-grow ml-8">
-            {activeTab === 'devices' ? (
+            {activeTab === 'Devices' ? (
               <DevicesAndData onDeviceSelect={setCurrentDevice} currentDevice={currentDevice} />
             ) : (
               <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} content</div>
