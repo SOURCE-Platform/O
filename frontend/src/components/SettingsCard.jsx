@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Switch } from "./shadcn/switch.tsx";
 import { formatSettingName } from '../utils/utils';
 
-// Remove this line as we're not using it directly
-// import { invoke } from '@tauri-apps/api/tauri';
+
 
 const SettingItem = ({ title, description, enabled, onToggle }) => (
   <div 
