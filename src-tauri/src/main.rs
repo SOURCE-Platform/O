@@ -14,8 +14,8 @@ use dotenv::dotenv;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Settings {
     screen: SettingItem,
-    session_info: SettingItem,
-    background_processes: SettingItem,
+    session: SettingItem,
+    processes: SettingItem,
     keyboard: SettingItem,
     mouse: SettingItem,
     camera: SettingItem,
@@ -35,11 +35,11 @@ impl Default for Settings {
                 enabled: false,
                 description: "Records screen activity and learns what you do based on your screen activity.".to_string(),
             },
-            session_info: SettingItem {
+            session: SettingItem {
                 enabled: false,
                 description: "Captures what apps and sites you have open in any session. Learns how your sessions evolve over time.".to_string(),
             },
-            background_processes: SettingItem {
+            processes: SettingItem {
                 enabled: false,
                 description: "Captures what background processes are running to determine what functionality you rely on while you compute.".to_string(),
             },
@@ -104,8 +104,8 @@ async fn get_device_settings(device_name: String, state: tauri::State<'_, State>
                                 let new_setting = SettingItem { enabled, description };
                                 match key.as_str() {
                                     "screen" => merged_settings.screen = new_setting,
-                                    "session_info" => merged_settings.session_info = new_setting,
-                                    "background_processes" => merged_settings.background_processes = new_setting,
+                                    "session" => merged_settings.session = new_setting,
+                                    "processes" => merged_settings.processes = new_setting,
                                     "keyboard" => merged_settings.keyboard = new_setting,
                                     "mouse" => merged_settings.mouse = new_setting,
                                     "camera" => merged_settings.camera = new_setting,

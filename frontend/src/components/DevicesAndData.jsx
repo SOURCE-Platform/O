@@ -47,13 +47,13 @@ const DevicesAndData = ({ onDeviceSelect }) => {
           </TabsList>
         </Tabs>
         
-        <div className="w-full my-4 flex justify-between items-center">
+        <div className="w-full mb-4 flex justify-between items-center">
           <h1 className="text-2xl font-normal text-white-100">{activeDevice}</h1>
           <button 
             className="p-2 hover:bg-gray-700 rounded-md"
             onClick={() => toggleSettings(activeDevice)}
           >
-            <Icon name="settings" size={24} className="text-white-100" />   
+            <Icon name="device-settings" size={24} className="text-white-100" />   
           </button>
         </div>
 

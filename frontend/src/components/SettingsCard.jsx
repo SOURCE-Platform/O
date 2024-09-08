@@ -4,37 +4,35 @@ import { Switch } from "./shadcn/switch.tsx";
 // Remove this line as we're not using it directly
 // import { invoke } from '@tauri-apps/api/tauri';
 
+const capitalizeFirstLetter = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
 const SettingItem = ({ title, description, enabled, onToggle }) => (
   <div 
-    className={`p-4 rounded-lg shadow-md flex transition-all duration-300 cursor-pointer
-      ${enabled 
-        ? 'bg-gray-700 border border-white-700' 
-        : 'bg-gray-800 border border-transparent'
-      }`}
+    className={`py-2 px-4 flex items-center transition-all duration-300 cursor-pointer border
+      ${enabled ? 'border-gray-600 bg-gray-850' : 'border-gray-600 bg-transparent'}
+    `}
     onClick={() => onToggle(title)}
   >
     <div className="flex-grow pr-4">
-      <h3 className="text-base font-medium text-white-100 mb-2">{title}</h3>
-      <p className="text-xs text-white-700">
-        {description}
-      </p>
+      <h3 className={`text-s font-regular ${enabled ? 'text-white-700' : 'text-gray-500'}`}>
+        {capitalizeFirstLetter(title)}
+      </h3>
     </div>
-    <div className="flex flex-col items-end">
-      <div className="flex items-center">
-        <div className="w-8 text-left">
-          <span className="text-xs text-white-700">{enabled ? 'On' : 'Off'}</span>
-        </div>
-        <Switch
-          checked={enabled}
-          onCheckedChange={() => {
-            onToggle(title);
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          aria-label={`Switch ${title}`}
-        />
+    <div className="flex items-center">
+      <div className="w-8 text-right mr-2">
       </div>
+      <Switch
+        checked={enabled}
+        onCheckedChange={() => {
+          onToggle(title);
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        aria-label={`Switch ${title}`}
+      />
     </div>
   </div>
 );
@@ -101,20 +99,21 @@ const SettingsCard = ({ deviceName }) => {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Settings for {deviceName}</h2>
+      <h2 className="text-l text-white-700 font-regular mb-4">Data Sources</h2>
       {error && <p className="text-red-500">Error: {error}</p>}
       {Object.keys(settings).length === 0 ? (
         <p>Loading settings...</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Object.entries(settings).map(([title, settingData]) => (
-            <SettingItem
-              key={title}
-              title={title}
-              description={settingData.description}
-              enabled={settingData.enabled}
-              onToggle={handleToggle}
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 -mt-[1px] -ml-[1px]">
+          {Object.entries(settings).map(([title, settingData], index) => (
+            <div key={title} className="mt-[-1px] ml-[-1px]">
+              <SettingItem
+                title={title}
+                description={settingData.description}
+                enabled={settingData.enabled}
+                onToggle={handleToggle}
+              />
+            </div>
           ))}
         </div>
       )}
