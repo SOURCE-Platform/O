@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import SettingsCard from './SettingsCard';
 import { Icon } from './ui/icons/Icon.tsx'; 
@@ -25,17 +25,30 @@ const DevicesAndData = ({ onDeviceSelect }) => {
     onDeviceSelect(device);
   };
 
+  const handleSettingsChange = useCallback((updatedSettings) => {
+    setSettings(updatedSettings);
+    const firstEnabledSetting = Object.entries(updatedSettings).find(([_, setting]) => setting.enabled);
+    setActiveTab(firstEnabledSetting ? firstEnabledSetting[0] : null);
+  }, []);
+
   useEffect(() => {
-    // Fetch settings when active device changes
     const fetchSettings = async () => {
-      // Implement your fetchSettings logic here
-      // This is a placeholder
-      const fetchedSettings = { screen: {}, keyboard: {}, mouse: {} };
-      setSettings(fetchedSettings);
-      setActiveTab(Object.keys(fetchedSettings)[0]);
+      try {
+        let fetchedSettings;
+        if (window.__TAURI__) {
+          const { invoke } = await import('@tauri-apps/api/tauri');
+          fetchedSettings = await invoke('get_device_settings', { deviceName: activeDevice });
+        } else {
+          const storedSettings = localStorage.getItem(`settings_${activeDevice}`);
+          fetchedSettings = storedSettings ? JSON.parse(storedSettings) : {};
+        }
+        handleSettingsChange(fetchedSettings);
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
     };
     fetchSettings();
-  }, [activeDevice]);
+  }, [activeDevice, handleSettingsChange]);
 
   return (
     <div>
@@ -73,7 +86,10 @@ const DevicesAndData = ({ onDeviceSelect }) => {
         </div>
 
         {showSettings === activeDevice && (
-          <SettingsCard deviceName={activeDevice} activeTab={activeTab} />
+          <SettingsCard 
+            deviceName={activeDevice} 
+            onSettingsChange={handleSettingsChange}
+          />
         )}
 
         <SettingsTabs

@@ -37,7 +37,7 @@ const SettingItem = ({ title, description, enabled, onToggle }) => (
   </div>
 );
 
-const SettingsCard = ({ deviceName }) => {
+const SettingsCard = ({ deviceName, onSettingsChange }) => {
   const [settings, setSettings] = useState({});
   const [error, setError] = useState(null);
 
@@ -79,17 +79,14 @@ const SettingsCard = ({ deviceName }) => {
     };
     setSettings(updatedSettings);
 
-    console.log('Saving updated settings:', updatedSettings);
-    
     try {
       if (window.__TAURI__) {
         const { invoke } = await import('@tauri-apps/api/tauri');
         await invoke('save_device_settings', { deviceName, settings: updatedSettings });
       } else {
-        // Save to localStorage for browser environment
         localStorage.setItem(`settings_${deviceName}`, JSON.stringify(updatedSettings));
       }
-      console.log('Settings saved successfully');
+      onSettingsChange(updatedSettings); // Propagate changes upwards
       setError(null);
     } catch (error) {
       console.error('Error saving settings:', error);

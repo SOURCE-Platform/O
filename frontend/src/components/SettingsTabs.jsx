@@ -2,10 +2,13 @@ import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 
 const SettingsTabs = ({ activeTab, onTabChange, settings }) => {
+  // Filter out disabled settings
+  const enabledSettings = Object.entries(settings).filter(([_, setting]) => setting.enabled);
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="my-6">
       <TabsList className="flex justify-start bg-transparent">
-        {Object.keys(settings).map((settingName) => (
+        {enabledSettings.map(([settingName, _]) => (
           <TabsTrigger
             key={settingName}
             value={settingName}
