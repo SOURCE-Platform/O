@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Switch } from "./shadcn/switch.tsx";
+import { formatSettingName } from '../utils/utils';
 
 // Remove this line as we're not using it directly
 // import { invoke } from '@tauri-apps/api/tauri';
-
-const capitalizeFirstLetter = (string) => {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-};
 
 const SettingItem = ({ title, description, enabled, onToggle }) => (
   <div 
@@ -17,7 +14,7 @@ const SettingItem = ({ title, description, enabled, onToggle }) => (
   >
     <div className="flex-grow pr-4">
       <h3 className={`text-xs font-regular ${enabled ? 'text-white-700' : 'text-gray-500'}`}>
-        {capitalizeFirstLetter(title)}
+        {formatSettingName(title)} {/* Use the new formatting function */}
       </h3>
     </div>
     <div className="flex items-center">
@@ -95,7 +92,7 @@ const SettingsCard = ({ deviceName, onSettingsChange }) => {
   };
 
   return (
-    <div className="p-4 rounded-lg bg-gray-950">
+    <div className="py-4 px-6 mb-4 rounded-lg bg-gray-950">
       <h2 className="text-l text-white-700 font-regular mb-2">Data Sources</h2>
       {error && <p className="text-red-500">Error: {error}</p>}
       {Object.keys(settings).length === 0 ? (

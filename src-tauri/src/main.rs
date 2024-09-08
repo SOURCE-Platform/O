@@ -13,6 +13,7 @@ use dotenv::dotenv;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Settings {
+    files_and_folders: SettingItem,
     screen: SettingItem,
     session: SettingItem,
     processes: SettingItem,
@@ -31,6 +32,10 @@ struct SettingItem {
 impl Default for Settings {
     fn default() -> Self {
         Settings {
+            files_and_folders: SettingItem {
+                enabled: false,
+                description: "Records screen activity and learns what you do based on your screen activity.".to_string(),
+            },
             screen: SettingItem {
                 enabled: false,
                 description: "Records screen activity and learns what you do based on your screen activity.".to_string(),
@@ -103,6 +108,7 @@ async fn get_device_settings(device_name: String, state: tauri::State<'_, State>
                                 let description = setting_item.get("description").and_then(|d| d.as_str()).unwrap_or("").to_string();
                                 let new_setting = SettingItem { enabled, description };
                                 match key.as_str() {
+                                    "files_and_folders" => merged_settings.files_and_folders = new_setting,
                                     "screen" => merged_settings.screen = new_setting,
                                     "session" => merged_settings.session = new_setting,
                                     "processes" => merged_settings.processes = new_setting,

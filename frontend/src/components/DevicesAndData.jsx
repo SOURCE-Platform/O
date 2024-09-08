@@ -75,7 +75,7 @@ const DevicesAndData = ({ onDeviceSelect }) => {
           </TabsList>
         </Tabs>
         
-        <div className="w-full mb-4 flex justify-between items-center">
+        <div className="w-full mb-2 flex justify-between items-center">
           <h1 className="text-2xl font-normal text-white-100">{activeDevice}</h1>
           <button 
             className="p-2 hover:bg-gray-700 rounded-md"
