@@ -16,7 +16,7 @@ const SettingItem = ({ title, description, enabled, onToggle }) => (
     onClick={() => onToggle(title)}
   >
     <div className="flex-grow pr-4">
-      <h3 className={`text-s font-regular ${enabled ? 'text-white-700' : 'text-gray-500'}`}>
+      <h3 className={`text-xs font-regular ${enabled ? 'text-white-700' : 'text-gray-500'}`}>
         {capitalizeFirstLetter(title)}
       </h3>
     </div>
@@ -98,8 +98,8 @@ const SettingsCard = ({ deviceName }) => {
   };
 
   return (
-    <div>
-      <h2 className="text-l text-white-700 font-regular mb-4">Data Sources</h2>
+    <div className="p-4 rounded-lg bg-gray-950">
+      <h2 className="text-l text-white-700 font-regular mb-2">Data Sources</h2>
       {error && <p className="text-red-500">Error: {error}</p>}
       {Object.keys(settings).length === 0 ? (
         <p>Loading settings...</p>

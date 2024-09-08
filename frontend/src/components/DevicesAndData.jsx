@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import SettingsCard from './SettingsCard';
-import { Icon } from './ui/icons/Icon.tsx';  // Keeping the .tsx extension
+import { Icon } from './ui/icons/Icon.tsx'; 
+import SettingsTabs from './SettingsTabs';
 
 const DevicesAndData = ({ onDeviceSelect }) => {
   const [activeDevice, setActiveDevice] = useState('Surface 10');
   const [showSettings, setShowSettings] = useState(null);
+  const [settings, setSettings] = useState({});
+  const [activeTab, setActiveTab] = useState(null);
 
   const devices = [
     { name: 'Surface 10', type: 'default' },
@@ -22,9 +25,21 @@ const DevicesAndData = ({ onDeviceSelect }) => {
     onDeviceSelect(device);
   };
 
+  useEffect(() => {
+    // Fetch settings when active device changes
+    const fetchSettings = async () => {
+      // Implement your fetchSettings logic here
+      // This is a placeholder
+      const fetchedSettings = { screen: {}, keyboard: {}, mouse: {} };
+      setSettings(fetchedSettings);
+      setActiveTab(Object.keys(fetchedSettings)[0]);
+    };
+    fetchSettings();
+  }, [activeDevice]);
+
   return (
     <div>
-      <div className="mt-8  mx-8">
+      <div className="mt-8 mx-8">
         <Tabs value={activeDevice} onValueChange={handleDeviceChange} className="mb-6">
           <TabsList className="flex justify-start bg-transparent">
             {devices.map((device) => (
@@ -57,11 +72,15 @@ const DevicesAndData = ({ onDeviceSelect }) => {
           </button>
         </div>
 
-        {showSettings === activeDevice ? (
-          <SettingsCard deviceName={activeDevice} />
-        ) : (
-          <p className="mt-6">This is where the Devices & Data content will go for {activeDevice}.</p>
+        {showSettings === activeDevice && (
+          <SettingsCard deviceName={activeDevice} activeTab={activeTab} />
         )}
+
+        <SettingsTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          settings={settings}
+        />
       </div>
     </div>
   );

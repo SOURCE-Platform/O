@@ -5,7 +5,7 @@ const HeaderTabs = ({ activeTab, onTabChange }) => {
   return (
     <header className="border-b border-gray-600 py-4">
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-        <TabsList className="flex justify-start bg-transparent ml-16">
+        <TabsList className="flex justify-start bg-transparent mx-8">
           {['Devices', 'APIs', 'Brain', 'ID', 'Help'].map((tab) => (
             <TabsTrigger 
               key={tab} 

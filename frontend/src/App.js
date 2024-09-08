@@ -20,7 +20,7 @@ function App() {
         <Sidebar onSettingsClick={toggleSettings} />
         <main className="flex-grow flex flex-col">
           <HeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
-          <div className="flex-grow ml-8">
+          <div className="flex-grow">
             {activeTab === 'Devices' ? (
               <DevicesAndData onDeviceSelect={setCurrentDevice} currentDevice={currentDevice} />
             ) : (
