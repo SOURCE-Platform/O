@@ -2,11 +2,13 @@ import React from 'react';
 import addIcon from '../../../icons/add.svg';
 import chatIcon from '../../../icons/chat.svg';
 import settingsIcon from '../../../icons/settings.svg';
+import xIcon from '../../../icons/X.svg'; // Add this line
 
 const iconMap = {
   add: addIcon,
   chat: chatIcon,
   settings: settingsIcon,
+  x: xIcon, // Add this line
 };
 
 interface IconProps {

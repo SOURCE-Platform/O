@@ -3,13 +3,13 @@
     windows_subsystem = "windows"
 )]
 
-use tauri::Manager;
 use std::sync::Mutex;
 use serde::{Serialize, Deserialize};
 use reqwest::Client;
 use dotenv::dotenv;
-// Remove the unused import
-// use std::fmt;
+use std::path::Path;
+use std::fs;
+use chrono::{DateTime, Utc};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Settings {
@@ -79,7 +79,7 @@ struct DatabaseSettings {
 struct State(Mutex<Settings>);
 
 #[tauri::command]
-async fn get_device_settings(device_name: String, state: tauri::State<'_, State>) -> Result<Settings, String> {
+async fn get_device_settings(device_name: String, _state: tauri::State<'_, State>) -> Result<Settings, String> {
     println!("Fetching settings for device: {}", device_name);
     let client = Client::new();
     let supabase_url = std::env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
@@ -170,13 +170,133 @@ async fn save_device_settings(device_name: String, settings: Settings, _state: t
     }
 }
 
+#[derive(Deserialize, Debug)]
+struct ItemInput {
+    name: String,
+    path: String,
+    #[serde(rename = "type")]
+    item_type: String,
+    size: u64,
+    #[serde(rename = "lastModified")]
+    last_modified: u64,
+    contents: Option<Vec<u8>>,
+    #[serde(rename = "isDirectory")]
+    is_directory: bool,
+    children: Option<Vec<ItemInput>>,
+}
+
+#[derive(Serialize, Debug)]
+struct ItemDetails {
+    id: String,
+    name: String,
+    path: String,
+    created: String,
+    modified: String,
+    accessed: String,
+    size: String,
+    item_type: String,
+    extension: String,
+    is_directory: bool,
+    children: Option<Vec<ItemDetails>>,
+}
+
+#[tauri::command]
+fn analyze_files_and_folders(items: Vec<ItemInput>) -> Result<Vec<ItemDetails>, String> {
+    items.into_iter().map(analyze_item).collect()
+}
+
+fn analyze_item(item: ItemInput) -> Result<ItemDetails, String> {
+    let ItemInput { name, path, item_type, size, last_modified, contents: _, is_directory, children } = item;
+    
+    let id = path.clone();
+    let created = format_time(std::time::UNIX_EPOCH + std::time::Duration::from_millis(last_modified));
+    let modified = created.clone();
+    let accessed = created.clone();
+    let size = format_size(size);
+    let (item_type, extension) = get_item_type_and_extension(&name, &item_type);
+
+    let analyzed_children = if is_directory {
+        children.map(|c| c.into_iter().map(analyze_item).collect::<Result<Vec<_>, _>>()).transpose()?
+    } else {
+        None
+    };
+
+    Ok(ItemDetails {
+        id,
+        name,
+        path,
+        created,
+        modified,
+        accessed,
+        size,
+        item_type,
+        extension,
+        is_directory,
+        children: analyzed_children,
+    })
+}
+
+// Update this function to handle directories
+fn get_item_type_and_extension(name: &str, mime_type: &str) -> (String, String) {
+    if mime_type == "directory" {
+        return ("Directory".to_string(), "".to_string());
+    }
+
+    let extension = Path::new(name)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    let item_type = if mime_type.starts_with("audio/") {
+        "Audio"
+    } else if mime_type.starts_with("video/") {
+        "Video"
+    } else if mime_type.starts_with("text/") || mime_type == "application/pdf" {
+        "Text"
+    } else if mime_type == "application/x-msdownload" || mime_type == "application/x-executable" {
+        "Executable"
+    } else if mime_type.starts_with("image/") {
+        "Image"
+    } else {
+        "Other"
+    };
+
+    (item_type.to_string(), extension)
+}
+
+fn format_time(time: std::time::SystemTime) -> String {
+    let datetime: DateTime<Utc> = time.into();
+    datetime.to_rfc3339()
+}
+
+fn format_size(size: u64) -> String {
+    const KB: u64 = 1024;
+    const MB: u64 = KB * 1024;
+    const GB: u64 = MB * 1024;
+
+    if size >= GB {
+        format!("{:.2} GB", size as f64 / GB as f64)
+    } else if size >= MB {
+        format!("{:.2} MB", size as f64 / MB as f64)
+    } else if size >= KB {
+        format!("{:.2} KB", size as f64 / KB as f64)
+    } else {
+        format!("{} bytes", size)
+    }
+}
+
 fn main() {
     dotenv().ok(); // This line loads the .env file
     let initial_settings = Settings::default();
 
     tauri::Builder::default()
         .manage(State(Mutex::new(initial_settings)))
-        .invoke_handler(tauri::generate_handler![get_device_settings, save_device_settings])
+        .invoke_handler(tauri::generate_handler![
+            get_device_settings,
+            save_device_settings,
+            analyze_files_and_folders
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
